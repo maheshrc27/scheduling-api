@@ -75,6 +75,7 @@ func main() {
 	mediaAssetRepo := repository.NewMediaAssetRepository(db)
 	settingsRepository := repository.NewSettingsRepository(db)
 	apiKeyRepository := repository.NewApiKeyRepository(db)
+	subscritpionRepo := repository.NewSubscriptionRepository(db)
 
 	authService := service.NewAuthService(*cfg, userRepo)
 	userService := service.NewUserService(userRepo)
@@ -86,6 +87,7 @@ func main() {
 	youtbeService := service.NewYoutubeService(*cfg, postRepo, socialAccountRepo, postMediaRepo, mediaAssetRepo)
 	settingsService := service.NewSettingsService(settingsRepository)
 	apiKeyService := service.NewApiKeyService(apiKeyRepository)
+	subscriptionService := service.NewSubscriptionService(*cfg, userRepo, subscritpionRepo)
 
 	authMiddleware := middleware.NewAuthMiddleware(*cfg, apiKeyService)
 
@@ -96,6 +98,9 @@ func main() {
 	platform := handlers.NewPlatformHandler(platformService, instagramService, tiktokService, youtbeService, *cfg)
 	app.Get("/auth/:platform", platform.AddSocialAccount)
 	app.Get("/auth/:platform/callback", platform.CallbackHandler)
+
+	payment := handlers.NewPaymentHandler(subscriptionService)
+	app.Post("/payment/webhook", payment.PaymentWebhook)
 
 	api := app.Group("/api")
 	api.Use(authMiddleware.AuthMiddleware())

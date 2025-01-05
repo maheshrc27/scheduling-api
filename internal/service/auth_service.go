@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	config "github.com/maheshrc27/postflow/configs"
@@ -14,7 +13,7 @@ import (
 )
 
 type AuthService interface {
-	LoginCallback(ctx context.Context, code string) (err error, userID int64)
+	LoginCallback(ctx context.Context, code string) (int64, error)
 }
 
 type authService struct {
@@ -29,12 +28,12 @@ func NewAuthService(cfg config.Config, u repository.UserRepository) AuthService 
 	}
 }
 
-func (s *authService) LoginCallback(ctx context.Context, code string) (err error, userID int64) {
-
+func (s *authService) LoginCallback(ctx context.Context, code string) (int64, error) {
+	var err error
 	if code == "" {
 		err = errors.New("code or state is empty")
 		slog.Info(err.Error())
-		return err, 0
+		return 0, err
 	}
 
 	oauth2Config := &oauth2.Config{
@@ -48,30 +47,30 @@ func (s *authService) LoginCallback(ctx context.Context, code string) (err error
 	if oauth2Config.ClientID == "" || oauth2Config.ClientSecret == "" || oauth2Config.RedirectURL == "" {
 		err = errors.New("OAuth2 configuration is incomplete")
 		slog.Info(err.Error())
-		return err, 0
+		return 0, err
 	}
 
 	token, err := oauth2Config.Exchange(context.Background(), code)
 	if err != nil {
 		slog.Info(err.Error())
-		return err, 0
+		return 0, err
 	}
 
 	client := oauth2Config.Client(context.Background(), token)
 
 	userInfo, err := GetUserInfo(client)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 
 	user, isExist, err := s.u.GetByEmail(ctx, userInfo.Email)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 
-	fmt.Printf("%v", user)
+	var userID int64
 
-	if !isExist || (user.GoogleID == "") {
+	if !isExist {
 		userID, err = s.u.Create(ctx, nil, &models.User{
 			GoogleID:       userInfo.ID,
 			Email:          userInfo.Email,
@@ -81,11 +80,27 @@ func (s *authService) LoginCallback(ctx context.Context, code string) (err error
 
 		if err != nil {
 			slog.Info(err.Error())
-			return err, 0
+			return 0, err
 		}
 	} else {
 		userID = user.ID
 	}
 
-	return nil, userID
+	if user.GoogleID == "" {
+		updateUser := &models.User{
+			ID:             userID,
+			GoogleID:       userInfo.ID,
+			Email:          userInfo.Email,
+			Name:           userInfo.Name,
+			ProfilePicture: userInfo.Picture,
+		}
+
+		err = s.u.Update(ctx, updateUser)
+		if err != nil {
+			return 0, err
+		}
+
+	}
+
+	return userID, nil
 }

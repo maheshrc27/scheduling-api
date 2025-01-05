@@ -37,7 +37,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) LoginCallbackHandler(c *fiber.Ctx) error {
 	code := c.Query("code")
 
-	err, userID := h.s.LoginCallback(c.Context(), code)
+	userID, err := h.s.LoginCallback(c.Context(), code)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "something went wrong",
