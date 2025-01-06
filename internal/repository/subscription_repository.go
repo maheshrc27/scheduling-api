@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/maheshrc27/postflow/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/models"
 )
 
 type SubscriptionRepository interface {

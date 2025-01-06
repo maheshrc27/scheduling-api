@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"github.com/maheshrc27/postflow/internal/repository"
-	"github.com/maheshrc27/postflow/internal/service"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
+	"github.com/maheshrc27/scheduling-api/internal/service"
 )
 
 type Queue struct {

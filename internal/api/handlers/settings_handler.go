@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/maheshrc27/postflow/internal/service"
-	"github.com/maheshrc27/postflow/internal/transfer"
+	"github.com/maheshrc27/scheduling-api/internal/service"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
 )
 
 type SettingsHandler struct {

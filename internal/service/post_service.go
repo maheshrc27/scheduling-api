@@ -14,9 +14,9 @@ import (
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
-	"github.com/maheshrc27/postflow/internal/models"
-	"github.com/maheshrc27/postflow/internal/repository"
-	"github.com/maheshrc27/postflow/internal/transfer"
+	"github.com/maheshrc27/scheduling-api/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 

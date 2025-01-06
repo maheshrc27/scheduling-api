@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	config "github.com/maheshrc27/postflow/configs"
-	"github.com/maheshrc27/postflow/internal/service"
-	"github.com/maheshrc27/postflow/pkg/utils"
+	config "github.com/maheshrc27/scheduling-api/configs"
+	"github.com/maheshrc27/scheduling-api/internal/service"
+	"github.com/maheshrc27/scheduling-api/pkg/utils"
 )
 
 type PlatformHandler struct {

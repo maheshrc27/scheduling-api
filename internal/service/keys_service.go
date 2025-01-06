@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/maheshrc27/postflow/internal/models"
-	"github.com/maheshrc27/postflow/internal/repository"
-	"github.com/maheshrc27/postflow/pkg/utils"
+	"github.com/maheshrc27/scheduling-api/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
+	"github.com/maheshrc27/scheduling-api/pkg/utils"
 )
 
 type ApiKeyService interface {

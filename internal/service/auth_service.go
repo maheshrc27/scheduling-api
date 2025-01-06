@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log/slog"
 
-	config "github.com/maheshrc27/postflow/configs"
-	"github.com/maheshrc27/postflow/internal/models"
-	"github.com/maheshrc27/postflow/internal/repository"
+	config "github.com/maheshrc27/scheduling-api/configs"
+	"github.com/maheshrc27/scheduling-api/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

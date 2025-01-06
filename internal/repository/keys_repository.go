@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/maheshrc27/postflow/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/models"
 )
 
 type ApiKeyRepository interface {

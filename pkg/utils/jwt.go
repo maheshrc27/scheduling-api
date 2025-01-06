@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/maheshrc27/postflow/internal/transfer"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
 )
 
 func GenerateToken(secretKey, userID string, tokenDuration time.Duration) (string, error) {

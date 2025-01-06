@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/hibiken/asynq"
-	"github.com/maheshrc27/postflow/internal/queue"
-	"github.com/maheshrc27/postflow/internal/service"
-	"github.com/maheshrc27/postflow/internal/transfer"
+	"github.com/maheshrc27/scheduling-api/internal/queue"
+	"github.com/maheshrc27/scheduling-api/internal/service"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
 )
 
 type PostHandler struct {

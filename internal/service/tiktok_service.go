@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	config "github.com/maheshrc27/postflow/configs"
-	"github.com/maheshrc27/postflow/internal/models"
-	"github.com/maheshrc27/postflow/internal/repository"
-	"github.com/maheshrc27/postflow/internal/transfer"
-	"github.com/maheshrc27/postflow/pkg/utils"
+	config "github.com/maheshrc27/scheduling-api/configs"
+	"github.com/maheshrc27/scheduling-api/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
+	"github.com/maheshrc27/scheduling-api/pkg/utils"
 )
 
 const tiktokTokenURL = "https://open.tiktokapis.com/v2/oauth/token/"

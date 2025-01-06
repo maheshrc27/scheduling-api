@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	cfg "github.com/maheshrc27/postflow/configs"
+	cfg "github.com/maheshrc27/scheduling-api/configs"
 )
 
 type R2Service struct {

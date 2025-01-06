@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	config "github.com/maheshrc27/postflow/configs"
-	"github.com/maheshrc27/postflow/internal/models"
-	"github.com/maheshrc27/postflow/internal/repository"
-	"github.com/maheshrc27/postflow/internal/transfer"
+	config "github.com/maheshrc27/scheduling-api/configs"
+	"github.com/maheshrc27/scheduling-api/internal/models"
+	"github.com/maheshrc27/scheduling-api/internal/repository"
+	"github.com/maheshrc27/scheduling-api/internal/transfer"
 )
 
 const (

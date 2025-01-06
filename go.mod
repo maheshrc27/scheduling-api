@@ -1,4 +1,4 @@
-module github.com/maheshrc27/postflow
+module github.com/maheshrc27/scheduling-api
 
 go 1.23.3
 
