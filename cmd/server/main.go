@@ -107,6 +107,7 @@ func main() {
 
 	user := handlers.NewUserHandler(userService)
 	api.Get("/user/info", user.GetUserInfo)
+	api.Post("/user/delete", user.DeleteAccount)
 
 	settings := handlers.NewSettingsHandler(settingsService)
 	api.Get("/settings/info", settings.GetSettingsInfo)

@@ -15,6 +15,7 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email string) (*models.User, bool, error)
 	Create(ctx context.Context, tx *sql.Tx, user *models.User) (int64, error)
 	Update(ctx context.Context, user *models.User) error
+	Remove(ctx context.Context, id int64) error
 }
 
 type userRepository struct {
@@ -86,5 +87,16 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) error {
 		return err
 	}
 
+	return nil
+}
+
+func (r *userRepository) Remove(ctx context.Context, id int64) error {
+	query := `DELETE FROM users WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+
+	if err != nil {
+		slog.Info(err.Error())
+		return err
+	}
 	return nil
 }

@@ -40,14 +40,14 @@ func (h *AuthHandler) LoginCallbackHandler(c *fiber.Ctx) error {
 	userID, err := h.s.LoginCallback(c.Context(), code)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "something went wrong",
+			"error": err.Error(),
 		})
 	}
 
 	token, err := utils.GenerateToken(h.cfg.SecretKey, fmt.Sprintf("%d", userID), 24*time.Hour)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "something went wrong",
+			"error": err.Error(),
 		})
 	}
 

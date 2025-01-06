@@ -57,50 +57,57 @@ func NewPostService(
 }
 
 func (s *postService) CreatePost(ctx context.Context, userID int64, pc *transfer.PostCreation, files []*multipart.FileHeader) (int64, time.Duration, error) {
-	var err error
+	// Validate input parameters
 	if pc == nil {
-		err = errors.New("nil value for parameter: creation")
+		err := errors.New("post creation data is nil")
 		slog.Error(err.Error())
 		return 0, 0, err
 	}
-
 	if pc.Caption == "" {
-		err = errors.New("Caption is empty")
+		err := errors.New("caption cannot be empty")
 		slog.Info(err.Error())
 		return 0, 0, err
 	}
 
-	datetime, err := time.Parse("2006-01-02T15:04", pc.ScheduledTime)
+	// Parse scheduled time
+	scheduledTime, err := time.Parse("2006-01-02T15:04", pc.ScheduledTime)
 	if err != nil {
-		slog.Error(err.Error())
-		return 0, 0, fmt.Errorf("Unable to parse scheduling time")
-	}
-
-	var selectedAccounts []int
-	if err := json.Unmarshal([]byte(pc.SelectedAccounts), &selectedAccounts); err != nil {
-		slog.Error(err.Error())
-		return 0, 0, fmt.Errorf("Invalid format for selected social accounts")
-	}
-
-	if files == nil || len(files) == 0 {
-		err = errors.New("file is nil or empty")
+		err = fmt.Errorf("invalid scheduled time format: %w", err)
 		slog.Error(err.Error())
 		return 0, 0, err
 	}
 
-	var postType string
-	if len(files) > 1 {
-		postType = PostTypeMultiple
-	} else {
-		postType = PostTypeSingle
+	// Parse selected accounts
+	var selectedAccounts []int
+	if err := json.Unmarshal([]byte(pc.SelectedAccounts), &selectedAccounts); err != nil {
+		err = fmt.Errorf("invalid selected accounts format: %w", err)
+		slog.Error(err.Error())
+		return 0, 0, err
+	}
+	if len(selectedAccounts) == 0 {
+		err := errors.New("no social accounts selected")
+		slog.Error(err.Error())
+		return 0, 0, err
 	}
 
+	// Validate files
+	if len(files) == 0 {
+		err := errors.New("no files provided for the post")
+		slog.Error(err.Error())
+		return 0, 0, err
+	}
+
+	postType := PostTypeSingle
+	if len(files) > 1 {
+		postType = PostTypeMultiple
+	}
+
+	// Begin database transaction
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return 0, 0, fmt.Errorf("Failed to start transaction: %w", err)
+		return 0, 0, fmt.Errorf("failed to start transaction: %w", err)
 	}
 	defer func() {
-		// Rollback if an error occurred
 		if p := recover(); p != nil {
 			tx.Rollback()
 			panic(p)
@@ -109,27 +116,52 @@ func (s *postService) CreatePost(ctx context.Context, userID int64, pc *transfer
 		}
 	}()
 
+	// Create post
 	post := models.Post{
 		UserID:        userID,
 		PostType:      postType,
 		Caption:       pc.Caption,
 		Title:         pc.Title,
-		ScheduledTime: datetime,
+		ScheduledTime: scheduledTime,
 		Status:        PostStatusScheduled,
 	}
 
 	postID, err := s.pr.Create(ctx, tx, &post)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Error creating post: %w", err)
+		return 0, 0, fmt.Errorf("error creating post: %w", err)
 	}
 
-	for _, accountID := range selectedAccounts {
-		isExist, err := s.ac.CheckByUserID(ctx, int64(accountID), userID)
+	// Validate and save selected accounts
+	if err := s.saveSelectedAccounts(ctx, tx, userID, postID, selectedAccounts); err != nil {
+		return 0, 0, fmt.Errorf("error processing selected accounts: %w", err)
+	}
+
+	// Process and save files
+	if err := s.processFiles(ctx, tx, userID, postID, files); err != nil {
+		return 0, 0, fmt.Errorf("error processing files: %w", err)
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return 0, 0, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	delay := time.Until(scheduledTime)
+	if delay < 0 {
+		delay = 0
+	}
+
+	return postID, delay, nil
+}
+
+func (s *postService) saveSelectedAccounts(ctx context.Context, tx *sql.Tx, userID, postID int64, accounts []int) error {
+	for _, accountID := range accounts {
+		exists, err := s.ac.CheckByUserID(ctx, int64(accountID), userID)
 		if err != nil {
-			return 0, 0, fmt.Errorf("Error checking social account: %w", err)
+			return fmt.Errorf("error checking social account %d: %w", accountID, err)
 		}
-		if !isExist {
-			return 0, 0, fmt.Errorf("Social account doesn't exist")
+		if !exists {
+			return fmt.Errorf("social account %d does not exist", accountID)
 		}
 
 		account := models.SelectedAccount{
@@ -137,62 +169,52 @@ func (s *postService) CreatePost(ctx context.Context, userID int64, pc *transfer
 			AccountID: int64(accountID),
 		}
 		if err := s.sa.Create(ctx, tx, &account); err != nil {
-			return 0, 0, fmt.Errorf("Error saving selected account: %w", err)
+			return fmt.Errorf("error saving selected account %d: %w", accountID, err)
 		}
 	}
+	return nil
+}
 
+func (s *postService) processFiles(ctx context.Context, tx *sql.Tx, userID, postID int64, files []*multipart.FileHeader) error {
 	allowedTypes := map[string]struct{}{
-		"mp4":  {},
-		"mov":  {},
-		"jpeg": {},
+		"mp4": {}, "mov": {}, "jpeg": {}, "png": {}, "jpg": {},
 	}
 
 	for i, file := range files {
 		fileContent, err := file.Open()
 		if err != nil {
-			return 0, 0, fmt.Errorf("Error opening file: %w", err)
+			return fmt.Errorf("error opening file: %w", err)
 		}
 		defer fileContent.Close()
 
 		fileBytes, err := io.ReadAll(fileContent)
 		if err != nil {
-			return 0, 0, fmt.Errorf("Error reading file content: %w", err)
+			return fmt.Errorf("error reading file content: %w", err)
 		}
 
 		fileType, err := filetype.Match(fileBytes)
 		if err != nil || fileType == types.Unknown {
-			return 0, 0, fmt.Errorf("Unsupported file type")
+			return fmt.Errorf("unsupported file type: %w", err)
 		}
-
 		if _, ok := allowedTypes[fileType.Extension]; !ok {
-			return 0, 0, fmt.Errorf("File type %s is not allowed", fileType.Extension)
+			return fmt.Errorf("file type %s is not allowed", fileType.Extension)
 		}
 
 		assetID, err := s.saveFile(ctx, tx, userID, fileType.MIME.Value, fileBytes)
 		if err != nil {
-			return 0, 0, fmt.Errorf("Error uploading file: %w", err)
+			return fmt.Errorf("error uploading file: %w", err)
 		}
 
-		pm := models.PostMedia{
+		postMedia := models.PostMedia{
 			PostID:       postID,
 			AssetID:      assetID,
 			DisplayOrder: i,
 		}
-		if err := s.pm.Create(ctx, tx, &pm); err != nil {
-			return 0, 0, fmt.Errorf("Error saving media file: %w", err)
+		if err := s.pm.Create(ctx, tx, &postMedia); err != nil {
+			return fmt.Errorf("error saving media file: %w", err)
 		}
 	}
-
-	if err = tx.Commit(); err != nil {
-		return 0, 0, fmt.Errorf("Failed to commit transaction: %w", err)
-	}
-
-	delay := time.Until(datetime)
-	if delay < 0 {
-		delay = 0
-	}
-
-	return postID, delay, nil
+	return nil
 }
 
 func (s *postService) saveFile(ctx context.Context, tx *sql.Tx, userID int64, fileType string, file []byte) (int64, error) {

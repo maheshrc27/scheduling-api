@@ -12,6 +12,7 @@ import (
 
 type UserService interface {
 	GetUserInfo(ctx context.Context, id int64) (*models.User, error)
+	RemoveUser(ctx context.Context, userID int64) error
 }
 
 type userService struct {
@@ -37,4 +38,12 @@ func (s *userService) GetUserInfo(ctx context.Context, id int64) (*models.User, 
 	}
 
 	return user, nil
+}
+
+func (s *userService) RemoveUser(ctx context.Context, userID int64) error {
+	err := s.u.Remove(ctx, userID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
