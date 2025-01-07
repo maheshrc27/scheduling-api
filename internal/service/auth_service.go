@@ -39,7 +39,7 @@ func (s *authService) LoginCallback(ctx context.Context, code string) (int64, er
 	oauth2Config := &oauth2.Config{
 		ClientID:     s.cfg.GoogleClientID,
 		ClientSecret: s.cfg.GoogleClientSecret,
-		RedirectURL:  "http://localhost:3000/login/callback",
+		RedirectURL:  s.cfg.GoogleRedirectURI,
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint:     google.Endpoint,
 	}
