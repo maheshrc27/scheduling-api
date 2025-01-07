@@ -15,10 +15,10 @@ COPY . ./
 RUN go mod download
 
 # Build the app
-RUN go build -o app
+RUN go build "./cmd/server/main.go"
 
 # Expose port
 EXPOSE 3000
 
 # Run the service on container startup.
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["./main"]
