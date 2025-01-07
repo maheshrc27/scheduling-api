@@ -63,7 +63,7 @@ func (s *youtubeService) YoutubeCallback(ctx context.Context, code string, userI
 	oauth2Config := &oauth2.Config{
 		ClientID:     s.cfg.GoogleClientID,
 		ClientSecret: s.cfg.GoogleClientSecret,
-		RedirectURL:  "http://localhost:3000/auth/youtube/callback",
+		RedirectURL:  s.cfg.GoogleRedirectURI,
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/youtube.upload"},
 		Endpoint:     google.Endpoint,
 	}

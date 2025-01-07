@@ -7,6 +7,7 @@ import (
 
 type Queue struct {
 	pr repository.PostRepository
+	ph repository.PostingHistoryRepository
 	sa repository.SelectedAccountRepository
 	ac repository.SocialAccountRepository
 	ma repository.MediaAssetRepository
@@ -18,6 +19,7 @@ type Queue struct {
 
 func NewQueue(
 	pr repository.PostRepository,
+	ph repository.PostingHistoryRepository,
 	sa repository.SelectedAccountRepository,
 	ma repository.MediaAssetRepository,
 	ac repository.SocialAccountRepository,
@@ -27,6 +29,7 @@ func NewQueue(
 	ig service.InstagramService) *Queue {
 	return &Queue{
 		pr: pr,
+		ph: ph,
 		sa: sa,
 		ac: ac,
 		ma: ma,

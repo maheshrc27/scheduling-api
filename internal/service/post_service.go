@@ -34,6 +34,7 @@ type postService struct {
 	ac repository.SocialAccountRepository
 	ma repository.MediaAssetRepository
 	pm repository.PostMediaRepository
+	sr repository.SubscriptionRepository
 	r2 R2Service
 }
 
@@ -44,6 +45,7 @@ func NewPostService(
 	ma repository.MediaAssetRepository,
 	ac repository.SocialAccountRepository,
 	pm repository.PostMediaRepository,
+	sr repository.SubscriptionRepository,
 	r2 R2Service) PostService {
 	return &postService{
 		db: db,
@@ -52,11 +54,29 @@ func NewPostService(
 		ac: ac,
 		ma: ma,
 		pm: pm,
+		sr: sr,
 		r2: r2,
 	}
 }
 
 func (s *postService) CreatePost(ctx context.Context, userID int64, pc *transfer.PostCreation, files []*multipart.FileHeader) (int64, time.Duration, error) {
+
+	isPremium, err := s.sr.CheckPremium(ctx, userID)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error checking user subscription")
+	}
+
+	if !isPremium {
+		postsNum, err := s.pr.CountCurrentMonth(ctx, userID)
+		if err != nil {
+			return 0, 0, fmt.Errorf("Error checking number of posts")
+		}
+
+		if postsNum > 2000 {
+			return 0, 0, fmt.Errorf("Only 5 posts are allowed for free users.")
+		}
+	}
+
 	// Validate input parameters
 	if pc == nil {
 		err := errors.New("post creation data is nil")

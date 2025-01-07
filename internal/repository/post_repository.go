@@ -16,6 +16,7 @@ type PostRepository interface {
 	UpdatePostStatus(ctx context.Context, status string, postID int64) error
 	CheckByUserID(ctx context.Context, accountID, userID int64) (bool, error)
 	Remove(ctx context.Context, id int64) error
+	CountCurrentMonth(ctx context.Context, userID int64) (int, error)
 }
 
 type postRepository struct {
@@ -156,4 +157,25 @@ func (r *postRepository) Remove(ctx context.Context, id int64) error {
 		return err
 	}
 	return nil
+}
+
+func (r *postRepository) CountCurrentMonth(ctx context.Context, userID int64) (int, error) {
+	query := `SELECT COUNT(*) 
+	FROM posts
+	WHERE user_id = $1
+	AND (created_at >= date_trunc('month', CURRENT_DATE)
+	AND updated_at < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month');
+	`
+
+	var result int
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+		slog.Info(err.Error())
+		return 0, err
+	}
+
+	return result, nil
 }

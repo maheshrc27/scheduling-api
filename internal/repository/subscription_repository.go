@@ -14,6 +14,7 @@ type SubscriptionRepository interface {
 	GetByUserID(ctx context.Context, id int64) (*models.Subscription, bool, error)
 	Create(ctx context.Context, subscription *models.Subscription) (int64, error)
 	UpdateSubscription(ctx context.Context, subscription *models.Subscription) error
+	CheckPremium(ctx context.Context, userID int64) (bool, error)
 }
 
 type subscriptionRepository struct {
@@ -61,4 +62,21 @@ func (r *subscriptionRepository) UpdateSubscription(ctx context.Context, subscri
 	}
 
 	return nil
+}
+
+func (r *subscriptionRepository) CheckPremium(ctx context.Context, userID int64) (bool, error) {
+
+	query := `SELECT 1 from subscriptions WHERE user_id = $1 AND subscription_end_date > CURRENT_TIMESTAMP`
+
+	var result int
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		slog.Info(err.Error())
+		return false, err
+	}
+
+	return result == 1, nil
 }

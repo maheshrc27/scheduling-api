@@ -73,19 +73,18 @@ func main() {
 	postMediaRepo := repository.NewPostMediaRepository(db)
 	selectedAccountRepo := repository.NewSelectedAccountRepository(db)
 	mediaAssetRepo := repository.NewMediaAssetRepository(db)
-	settingsRepository := repository.NewSettingsRepository(db)
 	apiKeyRepository := repository.NewApiKeyRepository(db)
 	subscritpionRepo := repository.NewSubscriptionRepository(db)
+	postingHistoryRepo := repository.NewPostingHistoryRepository(db)
 
 	authService := service.NewAuthService(*cfg, userRepo)
 	userService := service.NewUserService(userRepo)
 	r2Service := service.NewR2Service(*cfg)
-	postService := service.NewPostService(db, postRepo, selectedAccountRepo, mediaAssetRepo, socialAccountRepo, postMediaRepo, *r2Service)
+	postService := service.NewPostService(db, postRepo, selectedAccountRepo, mediaAssetRepo, socialAccountRepo, postMediaRepo, subscritpionRepo, *r2Service)
 	platformService := service.NewPlatformService(*cfg, socialAccountRepo)
 	instagramService := service.NewInstagramService(*cfg, socialAccountRepo, postRepo, postMediaRepo, mediaAssetRepo)
 	tiktokService := service.NewTiktokService(*cfg, postRepo, socialAccountRepo, postMediaRepo, mediaAssetRepo)
 	youtbeService := service.NewYoutubeService(*cfg, postRepo, socialAccountRepo, postMediaRepo, mediaAssetRepo)
-	settingsService := service.NewSettingsService(settingsRepository)
 	apiKeyService := service.NewApiKeyService(apiKeyRepository)
 	subscriptionService := service.NewSubscriptionService(*cfg, userRepo, subscritpionRepo)
 
@@ -105,33 +104,37 @@ func main() {
 	api := app.Group("/api")
 	api.Use(authMiddleware.AuthMiddleware())
 
+	userRoutes := app.Group("/user")
+	userRoutes.Use(authMiddleware.AuthMiddleware())
 	user := handlers.NewUserHandler(userService)
-	api.Get("/user/info", user.GetUserInfo)
-	api.Post("/user/delete", user.DeleteAccount)
+	userRoutes.Get("/info", user.GetUserInfo)
+	userRoutes.Post("/delete", user.DeleteAccount)
 
-	settings := handlers.NewSettingsHandler(settingsService)
-	api.Get("/settings/info", settings.GetSettingsInfo)
-	api.Post("/settings/update", settings.UpdateSettings)
-
+	apiKeysRoutes := app.Group("/api_key")
+	apiKeysRoutes.Use(authMiddleware.AuthMiddleware())
 	apiKeys := handlers.NewApiKeyHandler(apiKeyService)
-	api.Post("/api_key/new", apiKeys.CreateApiKey)
-	api.Get("/api_key/list", apiKeys.ListKeys)
-	api.Post("/api_key/remove", apiKeys.RemoveAPIKey)
+	apiKeysRoutes.Post("/new", apiKeys.CreateApiKey)
+	apiKeysRoutes.Get("/list", apiKeys.ListKeys)
+	apiKeysRoutes.Post("/remove", apiKeys.RemoveAPIKey)
 
+	postsRoutes := app.Group("/posts")
+	postsRoutes.Use(authMiddleware.AuthMiddleware())
 	post := handlers.NewPostHandler(postService, client)
-	api.Post("/posts/create", post.CreatePost)
-	api.Get("/posts", post.ListPosts)
-	api.Post("/posts/remove", post.RemovePost)
+	postsRoutes.Get("/", post.ListPosts)
+	postsRoutes.Post("/create", post.CreatePost)
+	postsRoutes.Post("/remove", post.RemovePost)
 
 	// social accounts api routes
-	api.Get("/accounts", platform.ListSocialAccounts)
-	api.Post("/accounts/remove", platform.DeleteSocialAccount)
+	accountsRoutes := app.Group("/accounts")
+	accountsRoutes.Use(authMiddleware.AuthMiddleware())
+	accountsRoutes.Get("/", platform.ListSocialAccounts)
+	accountsRoutes.Post("/remove", platform.DeleteSocialAccount)
 
 	// cron jobs
 	refreshTokenJob := job.NewtokenRefreshJob(socialAccountRepo, youtbeService, tiktokService, instagramService)
 
 	//queue
-	queueW := queue.NewQueue(postRepo, selectedAccountRepo, mediaAssetRepo, socialAccountRepo, postMediaRepo, youtbeService, tiktokService, instagramService)
+	queueW := queue.NewQueue(postRepo, postingHistoryRepo, selectedAccountRepo, mediaAssetRepo, socialAccountRepo, postMediaRepo, youtbeService, tiktokService, instagramService)
 
 	c := cron.New()
 	c.AddFunc("@every 00h10m00s", refreshTokenJob.RefreshTokens)
