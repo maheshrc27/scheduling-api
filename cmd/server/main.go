@@ -42,7 +42,10 @@ func main() {
 		log.Fatalf("Database is unreachable: %v", err)
 	}
 
-	redisConn := asynq.RedisClientOpt{Addr: cfg.RedisURI}
+	redisConn := asynq.RedisClientOpt{
+		Addr:     cfg.RedisURI,
+		Password: cfg.RedisPassword,
+	}
 	client := asynq.NewClient(redisConn)
 	defer client.Close()
 

@@ -22,6 +22,7 @@ type Config struct {
 	PostgresURI           string
 	DatabaseName          string
 	RedisURI              string
+	RedisPassword         string
 	FrontendURL           string
 	R2                    R2
 	SecretKey             string
@@ -42,6 +43,7 @@ func LoadConfig() *Config {
 		PostgresURI:           getEnv("POSTGRES_URI", ""),
 		DatabaseName:          getEnv("DATABASE_NAME", ""),
 		RedisURI:              getEnv("REDIS_URI", ""),
+		RedisPassword:         getEnv("REDIS_PASSWORD", ""),
 		FrontendURL:           getEnv("FRONTEND_URL", "http://localhost:5173"),
 		R2: R2{
 			AccountID:  getEnv("R2_ACCOUNT_ID", ""),
