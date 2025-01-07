@@ -10,41 +10,43 @@ type R2 struct {
 }
 
 type Config struct {
-	InstagramClientID     string
-	InstagramClientSecret string
-	InstagramRedirectURI  string
-	TiktokClientKey       string
-	TiktokClientSecret    string
-	TiktokRedirectURI     string
-	GoogleClientID        string
-	GoogleClientSecret    string
-	GoogleRedirectURI     string
-	PostgresURI           string
-	DatabaseName          string
-	RedisURI              string
-	RedisPassword         string
-	FrontendURL           string
-	R2                    R2
-	SecretKey             string
-	CookieName            string
+	InstagramClientID      string
+	InstagramClientSecret  string
+	InstagramRedirectURI   string
+	TiktokClientKey        string
+	TiktokClientSecret     string
+	TiktokRedirectURI      string
+	GoogleClientID         string
+	GoogleClientSecret     string
+	GoogleRedirectURI      string
+	GoogleLoginRedirectURI string
+	PostgresURI            string
+	DatabaseName           string
+	RedisURI               string
+	RedisPassword          string
+	FrontendURL            string
+	R2                     R2
+	SecretKey              string
+	CookieName             string
 }
 
 func LoadConfig() *Config {
 	return &Config{
-		InstagramClientID:     getEnv("INSTAGRAM_CLIENT_ID", ""),
-		InstagramClientSecret: getEnv("INSTAGRAM_CLIENT_SECRET", ""),
-		InstagramRedirectURI:  getEnv("INSTAGRAM_REDIRECT_URI", ""),
-		TiktokClientKey:       getEnv("TIKTOK_CLIENT_KEY", ""),
-		TiktokClientSecret:    getEnv("TIKTOK_CLIENT_SECRET", ""),
-		TiktokRedirectURI:     getEnv("TIKTOK_REDIRECT_URI", ""),
-		GoogleClientID:        getEnv("GOOGLE_CLIENT_ID", ""),
-		GoogleClientSecret:    getEnv("GOOGLE_CLIENT_SECRET", ""),
-		GoogleRedirectURI:     getEnv("GOOGLE_REDIRECT_URI", ""),
-		PostgresURI:           getEnv("POSTGRES_URI", ""),
-		DatabaseName:          getEnv("DATABASE_NAME", ""),
-		RedisURI:              getEnv("REDIS_URI", ""),
-		RedisPassword:         getEnv("REDIS_PASSWORD", ""),
-		FrontendURL:           getEnv("FRONTEND_URL", "http://localhost:5173"),
+		InstagramClientID:      getEnv("INSTAGRAM_CLIENT_ID", ""),
+		InstagramClientSecret:  getEnv("INSTAGRAM_CLIENT_SECRET", ""),
+		InstagramRedirectURI:   getEnv("INSTAGRAM_REDIRECT_URI", ""),
+		TiktokClientKey:        getEnv("TIKTOK_CLIENT_KEY", ""),
+		TiktokClientSecret:     getEnv("TIKTOK_CLIENT_SECRET", ""),
+		TiktokRedirectURI:      getEnv("TIKTOK_REDIRECT_URI", ""),
+		GoogleClientID:         getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret:     getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GoogleRedirectURI:      getEnv("GOOGLE_REDIRECT_URI", ""),
+		GoogleLoginRedirectURI: getEnv("GOOGLE_LOGIN_REDIRECT_URI", ""),
+		PostgresURI:            getEnv("POSTGRES_URI", ""),
+		DatabaseName:           getEnv("DATABASE_NAME", ""),
+		RedisURI:               getEnv("REDIS_URI", ""),
+		RedisPassword:          getEnv("REDIS_PASSWORD", ""),
+		FrontendURL:            getEnv("FRONTEND_URL", "http://localhost:5173"),
 		R2: R2{
 			AccountID:  getEnv("R2_ACCOUNT_ID", ""),
 			AccessKey:  getEnv("R2_ACCESS_KEY", ""),
