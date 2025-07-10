@@ -55,9 +55,9 @@ func (h *AuthHandler) LoginCallbackHandler(c *fiber.Ctx) error {
 		Name:     h.cfg.CookieName,
 		Value:    token,
 		HTTPOnly: true,
-		Secure:   true,
-		Domain:   ".scheduling-api.com",
-		SameSite: fiber.CookieSameSiteNoneMode,
+		Secure:   false,                       // use true in production
+		Domain:   "localhost",                 // .domain.com
+		SameSite: fiber.CookieSameSiteLaxMode, // use mode None in prod
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
